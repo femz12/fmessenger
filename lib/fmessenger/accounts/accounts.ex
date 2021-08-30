@@ -4,8 +4,12 @@ defmodule Fmessenger.Accounts do
   alias Fmessenger.Repo
   alias Fmessenger.Accounts.User
 
-  def create_user(params) do
+  def create_user(%{"password" => password} = params) do
+    # Encrypt the password with Comeonin:
+    encrypted_password = Comeonin.Bcrypt.hashpwsalt(password)
+
     register_changeset(params)
+    |> put_change(:encrypted_password, encrypted_password)
     |> Repo.insert()
   end
 
@@ -13,5 +17,10 @@ defmodule Fmessenger.Accounts do
     %User{}
     |> cast(params, [:username, :email, :password])
     |> validate_required([:username, :email, :password])
+    |> unique_constraint(:email)
+    |> unique_constraint(:username)
+    |> validate_format(:email, ~r/@/)
+    |> validate_format(:username, ~r/^[a-zA-Z0-9]*$/)
+    |> validate_length(:password, min: 4)
   end
 end

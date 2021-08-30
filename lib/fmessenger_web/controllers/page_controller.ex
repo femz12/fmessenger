@@ -2,9 +2,13 @@ defmodule FmessengerWeb.PageController do
   use FmessengerWeb, :controller
 
   alias Fmessenger.Accounts
+  alias Fmessenger.Accounts.Session
+  alias Fmessenger.Auth.Guardian
 
   def index(conn, _params) do
-    render(conn, "index.html")
+    changeset = Accounts.register_changeset()
+
+    render(conn, user_changeset: changeset)
   end
 
   def login(conn, _params) do
@@ -25,9 +29,33 @@ defmodule FmessengerWeb.PageController do
         |> redirect(to: "/")
 
       {:error, user_changeset} ->
+        IO.inspect(user_changeset)
+
         conn
         |> put_flash(:error, "Unable to create account!")
         |> render("signup.html", user_changeset: user_changeset)
     end
+  end
+
+  def login_user(conn, %{"credentials" => credentials}) do
+    case Session.authenticate(credentials) do
+      {:ok, %{username: username} = user} ->
+        conn
+        |> Guardian.Plug.sign_in(user)
+        |> put_flash(:info, "Logged in as #{username}!")
+        |> render("login.html")
+
+      {:error, message} ->
+        conn
+        |> put_flash(:error, message)
+        |> render("login.html")
+    end
+  end
+
+  def logout(conn, _params) do
+    conn
+    |> Guardian.Plug.sign_out()
+    |> put_flash(:info, "Signed out successfully!")
+    |> redirect(to: "/")
   end
 end

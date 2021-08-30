@@ -9,18 +9,24 @@ defmodule FmessengerWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :browser_session do
+    plug Fmessenger.Auth.Pipeline
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
 
   scope "/", FmessengerWeb do
-    pipe_through :browser
+    pipe_through [:browser, :browser_session]
 
     get "/", PageController, :index
 
     get "/signup", PageController, :signup
     post "/signup", PageController, :create_user
     get "/login", PageController, :login
+    post "/login", PageController, :login_user
+    get "/logout", PageController, :logout
   end
 
   # Other scopes may use custom stacks.

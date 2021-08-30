@@ -23,6 +23,12 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+config :fmessenger, Fmessenger.Auth.Guardian,
+  issuer: "Fmessenger",
+  ttl: {30, :days},
+  allowed_drift: 2000,
+  secret_key: "Bi0aihxUhSTV/zEhmOWsHsnH6kMB/U8mwv9hjjcZ65Vnw/GkZpb4FrARi23JIXpF"
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
